@@ -1,0 +1,12 @@
+{
+	"name": "arduino",
+	"version": "0.0.1",
+	"main": "web.js",
+	"dependencies": {
+		"serialport": "latest",
+		"socket.io": "latest"
+	},
+	"repository": "",
+	"author": ["Erick Navarro", "Braulio Nieva", "Leonell Cruz"],
+	"license": "BSD"
+}

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+	<meta charset="utf-8">
+	<title>Arduino</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+	<script type="text/javascript" src="flot/jquery.flot.js"></script>
+	<script type="text/javascript" src="socket.io.js"></script>
+	<script type="text/javascript">
+
+		var series = [];
+		var max_x = 100;
+		var unit = 'cm';
+
+		var socket = io.connect('http://127.0.0.1:6969');
+		socket.on('data', function(data){
+			$('#arduino-data').text(prepareData(data));
+
+			var y = parseInt(data);
+			var value = [0, y];
+
+			if(series.length === max_x)
+				series = series.slice(1);
+
+			series.push(value);
+			for(var i=0; i<series.length; i++)
+				series[i][0] = i;
+		});
+
+		$(function(){
+			var updateInterval = 30;
+
+			var options = {
+				series: { shadowSize: 0 },
+				yaxis: { min: 0, max: 100 },
+				xaxis: { show: false, min: 0, max: max_x }
+			};
+
+			var plot = $.plot($("#graph"), [ series ], options);
+
+			setInterval(function(){
+				plot.setData([ series ]);
+				plot.draw();
+			}, 100);
+
+			$('#unit-cm').on('click', function(e){
+				e.preventDefault();
+				unit = 'cm';
+			});
+
+			$('#unit-m').on('click', function(e){
+				e.preventDefault();
+				unit = 'm';
+			});
+
+		});
+
+		var prepareData = function (data){
+			var value = parseInt(data);
+			if(unit === 'cm'){
+				return volumen(data) + ' cm3';
+			}else if(unit === 'm'){
+				return volumen((data / 100)) + ' m3';
+			}else{
+				return '0';
+			}
+		}
+
+		var volumen = function(h){
+			var hBase = 46.5;
+			var new_h = hBase - h;
+			var ancho = 15;
+			return ancho * ancho * new_h;
+		};
+
+	</script>
+	<style type="text/css">
+		body{
+			font-size: 16px;
+		}
+		button{
+			display: inline-block;
+			padding: 1em;
+			width: 40%;
+			margin: 5%;
+		}
+		section{
+			margin: 2em auto;
+			width: 600px;
+		}
+		#arduino-data{
+			background: peru;
+			font-size: 2em;
+			color: white;
+			padding: 0.3em;
+			text-align: center;
+		}
+		#graph{
+			width: 600px;
+			height: 300px;
+		}
+	</style>
+</head>
+<body>
+	<section>
+		<article id="arduino-data"></article>
+		<article id="graph"></article>
+		<article id="controls">
+			<!-- <button id="unit-cm">cm</button>!--<button id="unit-m">m</button> -->
+		</article>
+	</section>
+</body>
+</html>
